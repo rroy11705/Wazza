@@ -1,8 +1,10 @@
 import discord
 import os
 import praw
+from keep_alive import keep_alive 
 
-from utils.guildReport import user_metrics_background_task, community_report, plot_community_report
+from utils.guildReport import *
+from utils.meme import *
 
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
@@ -13,6 +15,7 @@ reddit = praw.Reddit(client_id=os.getenv('REDDITCLIENTID'),
                      user_agent='Wazza',
                      username=os.getenv('REDDITUSER'),
                      check_for_async=False)
+
 
 @client.event
 async def on_ready():
@@ -27,24 +30,30 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith('w.meme'):
-        for submission in reddit.subreddit("soccercirclejerk").new(limit=5):
-            embed = discord.Embed(
-                title=submission.title,
-                description=submission.selftext,
-                colour=0xff69b4,
-            )
-            embed.set_image(url=submission.url)
-            embed.set_footer(text=f"Posted by By: {submission.author}")
+    if message.content.startswith('w.hottestmeme'):
+        await hotmeme(message, reddit, 1)
 
-            await message.channel.send(embed=embed)
+    if message.content.startswith('w.hotmeme'):
+        string = message.content.lower()
+        words = string.split()
+        if words[-1] == 'w.hotmeme':
+          await hotmeme(message, reddit, 10)
+        if words[-1].isdigit():
+          await hotmeme(message, reddit, int(words[-1]))
+        else:
+          await message.channel.send("String after w.hotmeme is not allowed. \nWrite `number of Memes` after w.hotmeme")
 
     if "w.creport" == message.content.lower():
         online, idle, dnd, offline, other = community_report(my_guild)
-        await message.channel.send(f"```py\nOnline: {online}\nIdle: {idle}\nDnD: {dnd}\nOffline: {offline}\nOther: {other}```")
+        await message.channel.send(
+            f"```py\nOnline: {online}\nIdle: {idle}\nDnD: {dnd}\nOffline: {offline}\nOther: {other}```"
+        )
         plot_community_report()
         file = discord.File("online.png", filename="online.png")
         await message.channel.send("Total Users V Online Users", file=file)
 
+
+client.loop.create_task(automeme(client, reddit))
 client.loop.create_task(user_metrics_background_task(client))
+keep_alive()
 client.run(os.getenv('TOKEN'))

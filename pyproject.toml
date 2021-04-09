@@ -10,6 +10,7 @@ discord = "^1.0.1"
 bottle = "^0.12.19"
 praw = "^7.2.0"
 pandas = "^1.2.3"
+flask = "^1.1.2"
 
 [tool.poetry.dev-dependencies]
 
