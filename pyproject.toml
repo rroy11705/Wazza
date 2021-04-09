@@ -9,6 +9,7 @@ python = "^3.8"
 discord = "^1.0.1"
 bottle = "^0.12.19"
 praw = "^7.2.0"
+pandas = "^1.2.3"
 
 [tool.poetry.dev-dependencies]
 

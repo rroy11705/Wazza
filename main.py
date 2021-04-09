@@ -2,7 +2,7 @@ import discord
 import os
 import praw
 
-from utils.guildReport import user_metrics_background_task, community_report
+from utils.guildReport import user_metrics_background_task, community_report, plot_community_report
 
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
@@ -40,8 +40,11 @@ async def on_message(message):
             await message.channel.send(embed=embed)
 
     if "w.creport" == message.content.lower():
-        online, idle, offline = community_report(my_guild)
-        await message.channel.send(f"```Online: {online}.\nIdle/busy/dnd: {idle}.\nOffline: {offline}```")
+        online, idle, dnd, offline, other = community_report(my_guild)
+        await message.channel.send(f"```py\nOnline: {online}\nIdle: {idle}\nDnD: {dnd}\nOffline: {offline}\nOther: {other}```")
+        plot_community_report()
+        file = discord.File("online.png", filename="online.png")
+        await message.channel.send("Total Users V Online Users", file=file)
 
 client.loop.create_task(user_metrics_background_task(client))
 client.run(os.getenv('TOKEN'))
